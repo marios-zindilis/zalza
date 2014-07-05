@@ -1,6 +1,7 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
+import codecs
 import datetime
 import hashlib
 import htmlmin
@@ -134,7 +135,9 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 					target_content += '<article itemscope itemtype="http://schema.org/BlogPosting">'
 				else:
 					target_content += '<article>'
-				target_content += markdown2.markdown(file(z['source_path']).read().decode('utf-8'), extras=['fenced-code-blocks'])
+				
+				target_content = target_content.decode('utf-8')
+				target_content += markdown2.markdown(z['source_content'], extras=['fenced-code-blocks'])
 				
 				z['page_info'] = ''
 				if headers.has_key('Title'):
@@ -150,7 +153,9 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 				if headers.has_key('Last Updated'):
 					z['page_info'] += '<li>Last Updated: <meta itemprop="dateModified" content="%s">%s</li>\n' % (headers['Last Updated'], headers['Last Updated'])
 				
-				target_content += Template(file(os.path.join(z['opt_path_templates'], 'tmpl_footer.html')).read()).substitute(z)
+				page_footer = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_footer.html')).read()).substitute(z)
+				page_footer = page_footer.decode('utf-8')
+				target_content += page_footer
 
 				target_file = open(z['target_path'], 'w')
 				if z['target_path'].endswith('.el.html'):
