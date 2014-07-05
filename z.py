@@ -158,7 +158,6 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 
 				target_file = open(z['target_path'], 'w')
 				target_content = htmlmin.minify(target_content, remove_comments=True)
-				print 'target_content', type(target_content)
 				target_file.write(target_content.encode('utf-8'))
 				target_file.close()
 
