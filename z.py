@@ -157,10 +157,9 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 				target_content += page_footer
 
 				target_file = open(z['target_path'], 'w')
-				if z['target_path'].endswith('.el.html'):
-					target_file.write(target_content.encode('utf-8'))
-				else:
-					target_file.write(htmlmin.minify(target_content, remove_comments=True))
+				target_content = htmlmin.minify(target_content, remove_comments=True)
+				print 'target_content', type(target_content)
+				target_file.write(target_content.encode('utf-8'))
 				target_file.close()
 
 				output_buffer += '    Created HTML file at:\n\n'
