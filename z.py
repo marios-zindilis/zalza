@@ -1,7 +1,6 @@
 #!/usr/bin/python -tt
 # -*- coding: utf-8 -*-
 
-import codecs
 import datetime
 import hashlib
 import htmlmin
