@@ -36,6 +36,8 @@ z['site_base_url']      = 'http://zindilis.com'
 z['site_author']        = 'Marios Zindilis'
 ## `action_index`: serial number of action taken
 action_index = 0
+## `pages_changed`: list of URLs of pages that were either created or updated
+pages_changed = []
 
 p = subprocess.Popen('clear', shell=True)
 p.communicate()
@@ -128,6 +130,8 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 				z['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(z['opt_path_source'])+1:])[0] + '.html')])
 				target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(z)
 
+				pages_changed.append(z['canonical_url'])
+
 				if z['page_section'] == 'docs':
 					target_content += '<article itemscope itemtype="http://schema.org/Article">'
 				elif z['page_section'] == 'blog':
@@ -195,9 +199,14 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 
 
 if z['generate_output']:
+	output_buffer += 'Pages Updated or Created during this Build\n'
+	output_buffer += '------------------------------------------\n\n'
+	for page_changed in pages_changed:
+		output_buffer += '*   %s\n' % (page_changed)
+
 	output_path = os.path.join(z['opt_path_build'], '%s.md' % (build))
 	output_file = open(output_path, 'w')
 	output_file.write(output_buffer)
 	output_file.close()
-	output_buffer += 'This log has been saved as: %s' % (output_path)
+	output_buffer += '\nThis log has been saved as: %s' % (output_path)
 	print output_buffer
