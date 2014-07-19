@@ -14,8 +14,8 @@ from string import Template
 z = {}
 ## `opt_path_source`: the directory that contains the source files:
 z['opt_path_source']    = '/home/marios/Public/Dropbox/Code/zindilis.com'
-## `opt_path_target`: the directory served over HTTP:
-z['opt_path_target']	= '/home/marios/Public/Dropbox/Code/marios-zindilis.github.io'
+## `d_htdocs`: the directory served over HTTP:
+d_htdocs = '/home/marios/Public/Dropbox/Code/marios-zindilis.github.io'
 ## `opt_path_state`: the directory that contains the state files:
 z['opt_path_state']     = '/home/marios/Public/Dropbox/Code/zalza/state'
 ## `opt_path_build`: the directory in which zBuild logs are saved:
@@ -56,7 +56,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 			continue
 
 		z['source_path'] = os.path.join(traverse_root, traverse_dir)
-		z['target_path'] = os.path.join(z['opt_path_target'], z['source_path'][len(z['opt_path_source'])+1:])
+		z['target_path'] = os.path.join(d_htdocs, z['source_path'][len(z['opt_path_source'])+1:])
 		z['state_path'] = os.path.join(z['opt_path_state'], z['source_path'][len(z['opt_path_source'])+1:])
 
 		if not os.path.isdir(z['target_path']) or not os.path.isdir(z['state_path']):
@@ -98,7 +98,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 			output_buffer += '        %s\n\n' % (z['source_path'])
 
 			if not z['source_path'].endswith('.md'):
-				z['target_path'] = os.path.join(z['opt_path_target'], z['source_path'][len(z['opt_path_source'])+1:])
+				z['target_path'] = os.path.join(d_htdocs, z['source_path'][len(z['opt_path_source'])+1:])
 				shutil.copyfile(z['source_path'], z['target_path'])
 				output_buffer += '    Copied verbatim at:\n\n'
 				output_buffer += '        %s\n\n' % (z['target_path'])
@@ -126,7 +126,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 
 				z['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
 				z['page_section'] = traverse_root[len(z['opt_path_source'])+1:].split('/')[0]
-				z['target_path'] = os.path.join(z['opt_path_target'], traverse_root[len(z['opt_path_source'])+1:], os.path.splitext(traverse_file)[0]) + '.html'
+				z['target_path'] = os.path.join(d_htdocs, traverse_root[len(z['opt_path_source'])+1:], os.path.splitext(traverse_file)[0]) + '.html'
 				z['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(z['opt_path_source'])+1:])[0] + '.html')])
 				target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(z)
 
@@ -186,8 +186,8 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(z['opt_path_source']
 			output_buffer += '    Committed source to Git and pushed.\n\n'
 
 			# Commit the target file:
-			os.chdir(z['opt_path_target'])
-			commit_path = z['target_path'][len(z['opt_path_target'])+1:]
+			os.chdir(d_htdocs)
+			commit_path = z['target_path'][len(d_htdocs)+1:]
 			p = subprocess.Popen(['git', 'add', commit_path])
 			p.communicate()
 			commit_mark = 'zBuild %s' % (datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
