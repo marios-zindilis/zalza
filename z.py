@@ -16,8 +16,8 @@ z = {}
 d_source = '/home/marios/Public/Dropbox/Code/zindilis.com'
 ## `d_htdocs`: the directory served over HTTP:
 d_htdocs = '/home/marios/Public/Dropbox/Code/marios-zindilis.github.io'
-## `opt_path_state`: the directory that contains the state files:
-z['opt_path_state'] = '/home/marios/Public/Dropbox/Code/zalza/state'
+## `d_state`: the directory that contains the state files:
+d_state = '/home/marios/Public/Dropbox/Code/zalza/state'
 ## `opt_path_build`: the directory in which zBuild logs are saved:
 z['opt_path_build'] =  '/home/marios/Public/Dropbox/Code/zalza/build'
 ## `opt_path_templates`: the directory containing the HTML templates:
@@ -58,7 +58,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         z['source_path'] = os.path.join(traverse_root, traverse_dir)
         z['target_path'] = os.path.join(d_htdocs, z['source_path'][len(d_source)+1:])
-        z['state_path'] = os.path.join(z['opt_path_state'], z['source_path'][len(d_source)+1:])
+        z['state_path'] = os.path.join(d_state, z['source_path'][len(d_source)+1:])
 
         if not os.path.isdir(z['target_path']) or not os.path.isdir(z['state_path']):
             z['generate_output'] = True
@@ -88,7 +88,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         z['source_path'] = os.path.join(traverse_root, traverse_file)
         z['source_content'] = file(z['source_path']).read()
-        z['state_path'] = os.path.join(z['opt_path_state'], z['source_path'][len(d_source)+1:]) + '.state'
+        z['state_path'] = os.path.join(d_state, z['source_path'][len(d_source)+1:]) + '.state'
         
         if not os.path.isfile(z['state_path']) \
         or (os.path.isfile(z['state_path']) and file(z['state_path']).read() != hashlib.md5(z['source_content']).hexdigest()):
