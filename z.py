@@ -22,8 +22,8 @@ z['opt_path_state'] = '/home/marios/Public/Dropbox/Code/zalza/state'
 z['opt_path_build'] =  '/home/marios/Public/Dropbox/Code/zalza/build'
 ## `opt_path_templates`: the directory containing the HTML templates:
 z['opt_path_templates'] = '/home/marios/Public/Dropbox/Code/zalza'
-## `skip_source_dirs`: subdirectories of `d_source` to be ignored:
-z['skip_source_dirs'] = ['.git', 'state']
+## `d_source_skip`: subdirectories of `d_source` to be ignored:
+d_source_skip = ['.git', 'state']
 ## `skip_source_files`: files in `d_source` to be ignored:
 z['skip_source_files'] = ['.gitignore', 'README.md']
 ## `generate_output`: whether or not the output will be generated
@@ -46,13 +46,14 @@ build = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 output_buffer = 'zBuild ' + build + '\n'
 output_buffer += '=' * len(output_buffer) + '\n\n'
 
+# Traverse source directory:
 for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
     for traverse_dir in traverse_dirs:
         # Skip some subdirectories of `d_source`:
-        if traverse_root == d_source and traverse_dir in z['skip_source_dirs']:
+        if traverse_root == d_source and traverse_dir in d_source_skip:
             continue
         # Also skip their subdirectories:
-        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in z['skip_source_dirs']:
+        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in d_source_skip:
             continue
 
         z['source_path'] = os.path.join(traverse_root, traverse_dir)
@@ -82,7 +83,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         if traverse_root == d_source and traverse_file in z['skip_source_files']:
             continue 
         # Also skip some subdirectories of `d_source`:
-        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in z['skip_source_dirs']:
+        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in d_source_skip:
             continue
 
         z['source_path'] = os.path.join(traverse_root, traverse_file)
