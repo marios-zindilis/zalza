@@ -23,7 +23,7 @@ z['opt_path_build'] =  '/home/marios/Public/Dropbox/Code/zalza/build'
 ## `opt_path_templates`: the directory containing the HTML templates:
 z['opt_path_templates'] = '/home/marios/Public/Dropbox/Code/zalza'
 ## `d_source_skip`: subdirectories of `d_source` to be ignored:
-d_source_skip = ['.git', 'state']
+d_source_skip = ['.git']
 ## `skip_source_files`: files in `d_source` to be ignored:
 z['skip_source_files'] = ['.gitignore', 'README.md']
 ## `generate_output`: whether or not the output will be generated
@@ -49,11 +49,11 @@ output_buffer += '=' * len(output_buffer) + '\n\n'
 # Traverse source directory:
 for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
     for traverse_dir in traverse_dirs:
+        d_section = traverse_root[len(d_source)+1:].split('/')[0]
         # Skip some subdirectories of `d_source`:
-        if traverse_root == d_source and traverse_dir in d_source_skip:
-            continue
-        # Also skip their subdirectories:
-        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in d_source_skip:
+        if (traverse_root == d_source 
+            and traverse_dir in d_source_skip) \
+        or d_section in d_source_skip:
             continue
 
         z['source_path'] = os.path.join(traverse_root, traverse_dir)
