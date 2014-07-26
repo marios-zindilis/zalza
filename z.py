@@ -126,22 +126,11 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
             else:
                 # Get headers from source file:
-#               headers = {}
                 headers = get_headers(z['source_path'])
                 output_buffer += '    Headers in this file:\n\n'
                 for header in headers.keys():
                     output_buffer += '        *   %s: %s\n' % (header, headers[header])
                 output_buffer += '\n'
-#                for line in file(z['source_path']).readlines():
-#                    if ':' in line:
-#                        key, value = line.split(':', 1)
-#                        key = key.lstrip().rstrip()
-#                        value = value.lstrip().rstrip()
-#                        headers[key] = value
-#                        output_buffer += '        *   %s: %s\n' % (key, headers[key])
-#                    if line == '- -->\n':
-#                        output_buffer += '\n'
-#                        break
 
                 z['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
                 z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
