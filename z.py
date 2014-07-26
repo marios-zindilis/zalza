@@ -39,8 +39,9 @@ action_index = 0
 ## `pages_changed`: list of URLs of pages that were either created or updated
 pages_changed = []
 
-p = subprocess.Popen('clear', shell=True)
-p.communicate()
+# p = subprocess.Popen('clear', shell=True)
+# p.communicate()
+subprocess.Popen('clear', shell=True).communicate()
 
 build = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 output_buffer = 'zBuild ' + build + '\n'
@@ -79,11 +80,12 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             output_buffer += '        %s\n\n' % (state_path)
 
     for traverse_file in traverse_files:
+        d_section = traverse_root[len(d_source)+1:].split('/')[0]
         # Skip some files in `d_source`:
         if traverse_root == d_source and traverse_file in f_source_skip:
             continue 
         # Also skip some subdirectories of `d_source`:
-        if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in d_source_skip:
+        if traverse_root != d_source and d_section in d_source_skip:
             continue
 
         z['source_path'] = os.path.join(traverse_root, traverse_file)
@@ -126,7 +128,6 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                         break
 
                 z['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
-                d_section = traverse_root[len(d_source)+1:].split('/')[0]
                 z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
                 z['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(d_source)+1:])[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(z)
