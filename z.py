@@ -24,8 +24,8 @@ z['opt_path_build'] =  '/home/marios/Public/Dropbox/Code/zalza/build'
 z['opt_path_templates'] = '/home/marios/Public/Dropbox/Code/zalza'
 ## `d_source_skip`: subdirectories of `d_source` to be ignored:
 d_source_skip = ['.git']
-## `skip_source_files`: files in `d_source` to be ignored:
-z['skip_source_files'] = ['.gitignore', 'README.md']
+## `f_source_skip`: files in `d_source` to be ignored:
+f_source_skip = ['.gitignore', 'README.md']
 ## `generate_output`: whether or not the output will be generated
 z['generate_output'] = False
 ## `site_name`: used as the title in web pages:
@@ -56,31 +56,31 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         or d_section in d_source_skip:
             continue
 
-        z['source_path'] = os.path.join(traverse_root, traverse_dir)
-        z['target_path'] = os.path.join(d_htdocs, z['source_path'][len(d_source)+1:])
-        z['state_path'] = os.path.join(d_state, z['source_path'][len(d_source)+1:])
+        source_path = os.path.join(traverse_root, traverse_dir)
+        target_path = os.path.join(d_htdocs, source_path[len(d_source)+1:])
+        state_path = os.path.join(d_state, source_path[len(d_source)+1:])
 
-        if not os.path.isdir(z['target_path']) or not os.path.isdir(z['state_path']):
+        if not os.path.isdir(target_path) or not os.path.isdir(state_path):
             z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
             output_buffer += 'Found a **source directory**:\n\n' 
-            output_buffer += '        %s\n\n' % (z['source_path'])
+            output_buffer += '        %s\n\n' % (source_path)
 
-        if not os.path.isdir(z['target_path']):
-            os.makedirs(z['target_path'])
+        if not os.path.isdir(target_path):
+            os.makedirs(target_path)
             output_buffer += '    Created its **target directory**:\n\n'
-            output_buffer += '        %s\n\n' % (z['target_path'])
+            output_buffer += '        %s\n\n' % (target_path)
             os.chdir(d_source)
 
-        if not os.path.isdir(z['state_path']):
-            os.makedirs(z['state_path'])
+        if not os.path.isdir(state_path):
+            os.makedirs(state_path)
             output_buffer += '    Created its **state directory**:\n\n'
-            output_buffer += '        %s\n\n' % (z['state_path'])
+            output_buffer += '        %s\n\n' % (state_path)
 
     for traverse_file in traverse_files:
         # Skip some files in `d_source`:
-        if traverse_root == d_source and traverse_file in z['skip_source_files']:
+        if traverse_root == d_source and traverse_file in f_source_skip:
             continue 
         # Also skip some subdirectories of `d_source`:
         if traverse_root != d_source and traverse_root[len(d_source)+1:].split('/')[0] in d_source_skip:
