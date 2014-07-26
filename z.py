@@ -47,6 +47,18 @@ build = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 output_buffer = 'zBuild ' + build + '\n'
 output_buffer += '=' * len(output_buffer) + '\n\n'
 
+def get_headers(source_path):
+    headers = {}
+    for line in file(source_path).readlines():
+        if ':' in line:
+            key, value = line.split(':', 1)
+            key = key.lstrip().rstrip()
+            value = value.lstrip().rstrip()
+            headers[key] = value
+        if line == '- -->\n':
+            break
+    return headers
+
 # Traverse source directory:
 for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
     for traverse_dir in traverse_dirs:
@@ -114,18 +126,22 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
             else:
                 # Get headers from source file:
-                headers = {}
+#               headers = {}
+                headers = get_headers(z['source_path'])
                 output_buffer += '    Headers in this file:\n\n'
-                for line in file(z['source_path']).readlines():
-                    if ':' in line:
-                        key, value = line.split(':', 1)
-                        key = key.lstrip().rstrip()
-                        value = value.lstrip().rstrip()
-                        headers[key] = value
-                        output_buffer += '        *   %s: %s\n' % (key, headers[key])
-                    if line == '- -->\n':
-                        output_buffer += '\n'
-                        break
+                for header in headers.keys():
+                    output_buffer += '        *   %s: %s\n' % (header, headers[header])
+                output_buffer += '\n'
+#                for line in file(z['source_path']).readlines():
+#                    if ':' in line:
+#                        key, value = line.split(':', 1)
+#                        key = key.lstrip().rstrip()
+#                        value = value.lstrip().rstrip()
+#                        headers[key] = value
+#                        output_buffer += '        *   %s: %s\n' % (key, headers[key])
+#                    if line == '- -->\n':
+#                        output_buffer += '\n'
+#                        break
 
                 z['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
                 z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
