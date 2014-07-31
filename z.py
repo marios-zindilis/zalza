@@ -28,6 +28,8 @@ d_source_skip = ['.git']
 f_source_skip = ['.gitignore', 'README.md']
 ## `generate_output`: whether or not the output will be generated
 z['generate_output'] = False
+## `repaginate`: whether or not to recreate blog pagination:
+repaginate = False
 ## `site_name`: used as the title in web pages:
 z['site_name'] = 'Marios Zindilis'
 ## `site_base_url`: used in reports and in generation of canonical URLs:
@@ -142,6 +144,8 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 if d_section == 'docs':
                     target_content += '<article itemscope itemtype="http://schema.org/Article">'
                 elif d_section == 'blog':
+                    if not source_path.endswith('index.md'):
+                        repaginate = True
                     target_content += '<article itemscope itemtype="http://schema.org/BlogPosting">'
                 else:
                     target_content += '<article>'
@@ -204,6 +208,95 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             p.communicate()
             output_buffer += '    Committed target to Git and pushed.\n\n'
 
+if repaginate:
+    posts = {}
+    pages = {}
+    post = 0
+    page = 0
+    d_blog = os.path.join(d_source, 'blog')
+    for traverse_root, traverse_dirs, traverse_files in os.walk(d_blog):
+        for traverse_file in traverse_files:
+            if traverse_file.endswith('.md'):
+                source_path = os.path.join(traverse_root, traverse_file)
+                source_path_date = get_headers(source_path)['First Published']
+                posts[source_path_date] = source_path
+    for date_published in sorted(posts.keys(), reverse=True):
+        if post == 0:
+            pages[page] = {}
+        pages[page][post] = posts[date_published]
+        post += 1
+        if post == 10:
+            post = 0
+            page += 1
+    for page in sorted(pages.keys()):
+        d = {}
+        d['site_name'] = z['site_name']
+        d['canonical_url'] = ''
+        if page == 0:
+            d['canonical_url'] = z['site_base_url'] + '/'
+            target_f = os.path.join(d_htdocs, 'index.html')
+            target_f = open(target_f, 'w')
+            d['page_title'] = z['site_name']
+        else:
+            d['canonical_url'] = '/'.join([z['site_base_url'], 'page', '%d.html' % (page)])
+            target_f = os.path.join(d_htdocs, 'page', '%d.html' % (page))
+            target_f = open(target_f, 'w')
+            d['page_title'] = '%s - Page %d' % (z['site_name'], page)
+
+        target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(d)
+
+        for post in sorted(pages[page].keys()):
+            headers = get_headers(pages[page][post])
+            target_content += '<article itemscope itemtype="http://schema.org/BlogPosting">'
+            href = os.path.splitext(pages[page][post][len(d_source):])[0] + '.html'
+            target_content += '<h1><a href="%s">%s</a></h1>' % (href, headers['Title'])
+            temp_content = file(pages[page][post]).read()
+            temp_content = temp_content.decode('utf-8')
+            temp_content = markdown2.markdown(temp_content, extras=['fenced-code-blocks'])
+            skip_lines = False
+            for line in temp_content.split('\n'):
+                if line.startswith('<h1>'):
+                    continue
+                if line.startswith('<ol class=') and 'breadcrumb' in line:
+                    skip_lines = True
+                    continue
+                if skip_lines and line.startswith('</ol>'):
+                    skip_lines = False
+                    continue
+                if skip_lines:
+                    continue
+                target_content += '%s\n' % (line.encode('utf-8'))
+            target_content += '<footer>Posted on %s</footer>' % (headers['First Published'])
+            target_content += '</article>'
+
+        target_content += '<ul class="pagination">'
+        if page == 0:
+            target_content += '<li class="disabled"><a href="#">Previous</a></li>'
+        elif page == 1:
+            target_content += '<li><a href="/">Previous</a></li>'
+        else:
+            target_content += '<li><a href="/page/%d.html">Previous</a></li>' % (page - 1)
+
+        for page_link in sorted(pages.keys()):
+            if page_link == 0:
+                if page == 0:
+                    target_content += '<li class="active"><a href="/">0</a></li>'
+                else:
+                    target_content += '<li><a href="/">0</a></li>'
+            else:
+                if page == page_link:
+                    target_content += '<li class="active"><a href="/page/%d.html">%d</a></li>' % (page_link, page_link)
+                else:
+                    target_content += '<li><a href="/page/%d.html">%d</a></li>' % (page_link, page_link)
+
+        if page == (len(pages.keys()) - 1):
+            target_content += '<li class="disabled"><a href="#">Next</a></li>'
+        else:
+            target_content += '<li><a href="/page/%d.html">Next</a></li>' % (page + 1)
+
+        target_content += '</ul>'
+
+        target_f.write(target_content)
 
 if z['generate_output']:
     output_buffer += 'Pages Updated or Created during this Build\n'
