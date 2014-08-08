@@ -234,14 +234,16 @@ if repaginate:
         d['canonical_url'] = ''
         if page == 0:
             d['canonical_url'] = z['site_base_url'] + '/'
-            target_f = os.path.join(d_htdocs, 'index.html')
-            target_f = open(target_f, 'w')
+            target_d = d_htdocs
+            target_f = os.path.join(target_d, 'index.html')
             d['page_title'] = z['site_name']
         else:
             d['canonical_url'] = '/'.join([z['site_base_url'], 'page', '%d.html' % (page)])
-            target_f = os.path.join(d_htdocs, 'page', '%d.html' % (page))
-            target_f = open(target_f, 'w')
+            target_d = os.path.join(d_htdocs, 'page')
+            target_f = os.path.join(target_d, '%d.html' % (page))
             d['page_title'] = '%s - Page %d' % (z['site_name'], page)
+        commit_f = target_f[len(target_d)+1:]
+        target_f = open(target_f, 'w')
 
         target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(d)
 
@@ -297,6 +299,17 @@ if repaginate:
         target_content += '</ul>'
 
         target_f.write(target_content)
+        target_f.close()
+
+        os.chdir(target_d)
+        p = subprocess.Popen(['git', 'add', commit_f])
+        p.communicate()
+        commit_mark = 'zBuild %s' % (datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+        p = subprocess.Popen(['git', 'commit', commit_f, '-m', commit_mark, '--quiet'])
+        p.communicate()
+        p = subprocess.Popen(['git', 'push', '--quiet'])
+        p.communicate()
+
 
 if z['generate_output']:
     output_buffer += 'Pages Updated or Created during this Build\n'
