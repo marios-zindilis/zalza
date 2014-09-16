@@ -104,8 +104,13 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         source_path = os.path.join(traverse_root, traverse_file)
         z['source_content'] = file(source_path).read()
-        state_path = os.path.join(d_state, source_path[len(d_source)+1:]) + '.state'
+        state_path = os.path.join(d_state, source_path[len(d_source)+1:])
+        state_path = state_path + '.state'
         
+        # If the state file does not exist (which means that the source file 
+        # is new), or the state file does exist but the hash of the content is 
+        # not the same as the contents of the state file (which means that the 
+        # source file has changed), then [re-]generate the target file: 
         if not os.path.isfile(state_path) \
         or (os.path.isfile(state_path) and file(state_path).read() != hashlib.md5(z['source_content']).hexdigest()):
             z['generate_output'] = True
