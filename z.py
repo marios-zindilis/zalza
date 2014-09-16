@@ -108,13 +108,14 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         state_path = os.path.join(d_state, source_path[len(d_source)+1:])
         state_path = state_path + '.state'
+        state_hash = file(state_path).read()
         
         # If the state file does not exist (which means that the source file 
         # is new), or the state file does exist but the hash of the content is 
         # not the same as the contents of the state file (which means that the 
         # source file has changed), then [re-]generate the target file: 
         if not os.path.isfile(state_path) \
-        or (os.path.isfile(state_path) and file(state_path).read() != source_hash):
+        or (os.path.isfile(state_path) and state_hash != source_hash):
             z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
