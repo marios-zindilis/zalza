@@ -104,10 +104,10 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         z['source_path'] = os.path.join(traverse_root, traverse_file)
         z['source_content'] = file(z['source_path']).read()
-        z['state_path'] = os.path.join(d_state, z['source_path'][len(d_source)+1:]) + '.state'
+        state_path = os.path.join(d_state, z['source_path'][len(d_source)+1:]) + '.state'
         
-        if not os.path.isfile(z['state_path']) \
-        or (os.path.isfile(z['state_path']) and file(z['state_path']).read() != hashlib.md5(z['source_content']).hexdigest()):
+        if not os.path.isfile(state_path) \
+        or (os.path.isfile(state_path) and file(state_path).read() != hashlib.md5(z['source_content']).hexdigest()):
             z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
@@ -120,11 +120,11 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '    Copied verbatim at:\n\n'
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
-                state_file = open(z['state_path'], 'w')
-                state_file.write(hashlib.md5(file(z['source_path']).read()).hexdigest())
+                state_file = open(state_path, 'w')
+                state_file.write(hashlib.md5(file(source_path).read()).hexdigest())
                 state_file.close()
                 output_buffer += '    Created state at:\n\n'
-                output_buffer += '        %s\n\n' % (z['state_path'])
+                output_buffer += '        %s\n\n' % (state_path)
 
             else:
                 # Get headers from source file:
@@ -181,11 +181,11 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '    Created HTML file at:\n\n'
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
-                state_file = open(z['state_path'], 'w')
+                state_file = open(state_path, 'w')
                 state_file.write(hashlib.md5(file(z['source_path']).read()).hexdigest())
                 state_file.close()
                 output_buffer += '    Create state at:\n\n'
-                output_buffer += '        %s\n\n' % (z['state_path'])
+                output_buffer += '        %s\n\n' % (state_path)
 
             os.chdir(d_source)
             commit_path = z['source_path'][len(d_source)+1:]
