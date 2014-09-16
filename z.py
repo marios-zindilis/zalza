@@ -104,6 +104,8 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         source_path = os.path.join(traverse_root, traverse_file)
         z['source_content'] = file(source_path).read()
+        source_hash = hashlib.md5(z['source_content']).hexdigest()
+
         state_path = os.path.join(d_state, source_path[len(d_source)+1:])
         state_path = state_path + '.state'
         
@@ -112,13 +114,15 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         # not the same as the contents of the state file (which means that the 
         # source file has changed), then [re-]generate the target file: 
         if not os.path.isfile(state_path) \
-        or (os.path.isfile(state_path) and file(state_path).read() != hashlib.md5(z['source_content']).hexdigest()):
+        or (os.path.isfile(state_path) and file(state_path).read() != source_hash):
             z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
             output_buffer += 'Found a **source file**:\n\n'
             output_buffer += '        %s\n\n' % (source_path)
 
+            # If the source is not a Markdown file, then just copy it verbatim 
+            # to the target directory and [re-]create the state:
             if not source_path.endswith('.md'):
                 z['target_path'] = os.path.join(d_htdocs, source_path[len(d_source)+1:])
                 shutil.copyfile(source_path, z['target_path'])
@@ -126,11 +130,12 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
                 state_file = open(state_path, 'w')
-                state_file.write(hashlib.md5(file(source_path).read()).hexdigest())
+                state_file.write(source_hash)
                 state_file.close()
                 output_buffer += '    Created state at:\n\n'
                 output_buffer += '        %s\n\n' % (state_path)
-
+            # Otherwise, if the source _is_ Markdown, then [re-]create both the
+            # HTML output and the state:
             else:
                 # Get headers from source file:
                 headers = get_headers(source_path)
@@ -187,7 +192,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
                 state_file = open(state_path, 'w')
-                state_file.write(hashlib.md5(file(source_path).read()).hexdigest())
+                state_file.write(source_hash)
                 state_file.close()
                 output_buffer += '    Create state at:\n\n'
                 output_buffer += '        %s\n\n' % (state_path)
