@@ -134,12 +134,14 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                     output_buffer += '        *   %s: %s\n' % (header, headers[header])
                 output_buffer += '\n'
 
-                z['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
+                tmpl = {}
+                tmpl['site_name'] = z['site_name']
+                tmpl['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
                 z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
-                z['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(d_source)+1:])[0] + '.html')])
-                target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(z)
+                tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(d_source)+1:])[0] + '.html')])
+                target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
 
-                pages_changed.append(z['canonical_url'])
+                pages_changed.append(tmpl['canonical_url'])
 
                 if d_section == 'docs':
                     target_content += '<article itemscope itemtype="http://schema.org/Article">'
