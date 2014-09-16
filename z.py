@@ -125,10 +125,10 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             # If the source is not a Markdown file, then just copy it verbatim 
             # to the target directory and [re-]create the state:
             if not source_path.endswith('.md'):
-                z['target_path'] = os.path.join(d_htdocs, source_path[len(d_source)+1:])
-                shutil.copyfile(source_path, z['target_path'])
+                target_path = os.path.join(d_htdocs, source_path[len(d_source)+1:])
+                shutil.copyfile(source_path, target_path)
                 output_buffer += '    Copied verbatim at:\n\n'
-                output_buffer += '        %s\n\n' % (z['target_path'])
+                output_buffer += '        %s\n\n' % (target_path)
 
                 state_file = open(state_path, 'w')
                 state_file.write(source_hash)
@@ -148,7 +148,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 tmpl = {}
                 tmpl['site_name'] = z['site_name']
                 tmpl['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
-                z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
+                target_path = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
                 tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_path[len(d_source)+1:])[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
 
@@ -184,13 +184,13 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 page_footer = page_footer.decode('utf-8')
                 target_content += page_footer
 
-                target_file = open(z['target_path'], 'w')
+                target_file = open(target_path, 'w')
                 target_content = htmlmin.minify(target_content, remove_comments=True)
                 target_file.write(target_content.encode('utf-8'))
                 target_file.close()
 
                 output_buffer += '    Created HTML file at:\n\n'
-                output_buffer += '        %s\n\n' % (z['target_path'])
+                output_buffer += '        %s\n\n' % (target_path)
 
                 state_file = open(state_path, 'w')
                 state_file.write(source_hash)
@@ -211,7 +211,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
             # Commit the target file:
             os.chdir(d_htdocs)
-            commit_path = z['target_path'][len(d_htdocs)+1:]
+            commit_path = target_path[len(d_htdocs)+1:]
             p = subprocess.Popen(['git', 'add', commit_path])
             p.communicate()
             commit_mark = 'zBuild %s' % (datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
