@@ -102,9 +102,9 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         if traverse_root != d_source and d_section in d_source_skip:
             continue
 
-        z['source_path'] = os.path.join(traverse_root, traverse_file)
-        z['source_content'] = file(z['source_path']).read()
-        state_path = os.path.join(d_state, z['source_path'][len(d_source)+1:]) + '.state'
+        source_path = os.path.join(traverse_root, traverse_file)
+        z['source_content'] = file(source_path).read()
+        state_path = os.path.join(d_state, source_path[len(d_source)+1:]) + '.state'
         
         if not os.path.isfile(state_path) \
         or (os.path.isfile(state_path) and file(state_path).read() != hashlib.md5(z['source_content']).hexdigest()):
@@ -112,11 +112,11 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
             output_buffer += 'Found a **source file**:\n\n'
-            output_buffer += '        %s\n\n' % (z['source_path'])
+            output_buffer += '        %s\n\n' % (source_path)
 
-            if not z['source_path'].endswith('.md'):
-                z['target_path'] = os.path.join(d_htdocs, z['source_path'][len(d_source)+1:])
-                shutil.copyfile(z['source_path'], z['target_path'])
+            if not source_path.endswith('.md'):
+                z['target_path'] = os.path.join(d_htdocs, source_path[len(d_source)+1:])
+                shutil.copyfile(source_path, z['target_path'])
                 output_buffer += '    Copied verbatim at:\n\n'
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
@@ -128,7 +128,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
             else:
                 # Get headers from source file:
-                headers = get_headers(z['source_path'])
+                headers = get_headers(source_path)
                 output_buffer += '    Headers in this file:\n\n'
                 for header in headers.keys():
                     output_buffer += '        *   %s: %s\n' % (header, headers[header])
@@ -138,7 +138,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 tmpl['site_name'] = z['site_name']
                 tmpl['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
                 z['target_path'] = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
-                tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(z['source_path'][len(d_source)+1:])[0] + '.html')])
+                tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_path[len(d_source)+1:])[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
 
                 pages_changed.append(tmpl['canonical_url'])
@@ -182,13 +182,13 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '        %s\n\n' % (z['target_path'])
 
                 state_file = open(state_path, 'w')
-                state_file.write(hashlib.md5(file(z['source_path']).read()).hexdigest())
+                state_file.write(hashlib.md5(file(source_path).read()).hexdigest())
                 state_file.close()
                 output_buffer += '    Create state at:\n\n'
                 output_buffer += '        %s\n\n' % (state_path)
 
             os.chdir(d_source)
-            commit_path = z['source_path'][len(d_source)+1:]
+            commit_path = source_path[len(d_source)+1:]
             p = subprocess.Popen(['git', 'add', commit_path])
             p.communicate()
             commit_mark = 'zBuild %s' % (datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
