@@ -73,7 +73,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         # The source_path is the absolute path of the source directory:
         source_path = os.path.join(traverse_root, traverse_dir)
-        # The source_subpath is the portion of the source_path after the basis 
+        # The source_subpath is the portion of the source_path after the base 
         # source directory. It is used to recreate the exact same directory 
         # structure from the source to the target and state directories.
         source_subpath = source_path[len(d_source)+1:]
@@ -107,11 +107,17 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         if traverse_root != d_source and d_section in d_source_skip:
             continue
 
+        # The source_path is the absolute path of the source file:
         source_path = os.path.join(traverse_root, traverse_file)
+        # The source_subpath is the portion of the source_path after the base 
+        # source directory. It is used to create the target file and the state  
+        # file under the same directory structure from the source to the target 
+        # and state directories:
+        source_subpath = source_path[len(d_source)+1:]
         z['source_content'] = file(source_path).read()
         source_hash = hashlib.md5(z['source_content']).hexdigest()
 
-        state_path = os.path.join(d_state, source_path[len(d_source)+1:])
+        state_path = os.path.join(d_state, source_subpath)
         state_path = state_path + '.state'
         state_hash = file(state_path).read()
         
@@ -130,7 +136,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             # If the source is not a Markdown file, then just copy it verbatim 
             # to the target directory and [re-]create the state:
             if not source_path.endswith('.md'):
-                target_path = os.path.join(d_htdocs, source_path[len(d_source)+1:])
+                target_path = os.path.join(d_htdocs, source_subpath)
                 shutil.copyfile(source_path, target_path)
                 output_buffer += '    Copied verbatim at:\n\n'
                 output_buffer += '        %s\n\n' % (target_path)
@@ -154,7 +160,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 tmpl['site_name'] = z['site_name']
                 tmpl['page_title'] = z['site_name'] + ' - ' + headers['Title'] if headers.has_key('Title') else z['site_name']
                 target_path = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
-                tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_path[len(d_source)+1:])[0] + '.html')])
+                tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_subpath)[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
 
                 pages_changed.append(tmpl['canonical_url'])
@@ -204,7 +210,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 output_buffer += '        %s\n\n' % (state_path)
 
             os.chdir(d_source)
-            commit_path = source_path[len(d_source)+1:]
+            commit_path = source_subpath
             p = subprocess.Popen(['git', 'add', commit_path])
             p.communicate()
             commit_mark = 'zBuild %s' % (datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
