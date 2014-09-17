@@ -71,9 +71,14 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         or d_section in d_source_skip:
             continue
 
+        # The source_path is the absolute path of the source directory:
         source_path = os.path.join(traverse_root, traverse_dir)
-        target_path = os.path.join(d_htdocs, source_path[len(d_source)+1:])
-        state_path = os.path.join(d_state, source_path[len(d_source)+1:])
+        # The source_subpath is the portion of the source_path after the basis 
+        # source directory. It is used to recreate the exact same directory 
+        # structure from the source to the target and state directories.
+        source_subpath = source_path[len(d_source)+1:]
+        target_path = os.path.join(d_htdocs, source_subpath)
+        state_path = os.path.join(d_state, source_subpath)
 
         if not os.path.isdir(target_path) or not os.path.isdir(state_path):
             z['generate_output'] = True
