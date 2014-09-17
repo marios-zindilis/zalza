@@ -26,8 +26,6 @@ z['opt_path_templates'] = '/home/marios/Public/Dropbox/Code/zalza'
 d_source_skip = ['.git']
 ## `f_source_skip`: files in `d_source` to be ignored:
 f_source_skip = ['.gitignore', 'README.md']
-## `generate_output`: whether or not the output will be generated
-z['generate_output'] = False
 ## `repaginate`: whether or not to recreate blog pagination:
 repaginate = False
 ## `site_name`: used as the title in web pages:
@@ -38,8 +36,8 @@ z['site_base_url'] = 'http://zindilis.com'
 z['site_author'] = 'Marios Zindilis'
 ## `action_index`: serial number of action taken
 action_index = 0
-## `pages_changed`: list of URLs of pages that were either created or updated
-pages_changed = []
+## `changes`: list of directories or files that were either created or updated
+changes = []
 
 # p = subprocess.Popen('clear', shell=True)
 # p.communicate()
@@ -81,7 +79,6 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         state_path = os.path.join(d_state, source_subpath)
 
         if not os.path.isdir(target_path) or not os.path.isdir(state_path):
-            z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
             output_buffer += 'Found a **source directory**:\n\n' 
@@ -127,7 +124,6 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         # source file has changed), then [re-]generate the target file: 
         if not os.path.isfile(state_path) \
         or (os.path.isfile(state_path) and state_hash != source_hash):
-            z['generate_output'] = True
             action_index += 1
             output_buffer += ('%s.' % (str(action_index))).ljust(4)
             output_buffer += 'Found a **source file**:\n\n'
@@ -163,7 +159,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_subpath)[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
 
-                pages_changed.append(tmpl['canonical_url'])
+                changes.append(tmpl['canonical_url'])
 
                 if d_section == 'docs':
                     target_content += '<article itemscope itemtype="http://schema.org/Article">'
@@ -335,12 +331,12 @@ if repaginate:
         p.communicate()
 
 
-if z['generate_output']:
-    output_buffer += 'Pages Updated or Created during this Build\n'
-    output_buffer += '------------------------------------------\n\n'
-    for page_changed in pages_changed:
-        output_buffer += '*   %s\n' % (page_changed)
-
+if len(changes):
+    output_buffer += 'Changes during this Build\n'
+    output_buffer += '-------------------------\n\n'
+    for change in changes:
+        output_buffer += '*   %s\n' % (change)
+    
     output_path = os.path.join(z['opt_path_build'], '%s.md' % (build))
     output_file = open(output_path, 'w')
     output_file.write(output_buffer)
