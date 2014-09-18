@@ -157,6 +157,12 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 tmpl['page_title'] = z['site_name']
                 if headers.has_key('Title'):
                     tmpl['page_title'] += ' - %s' % (headers['Title'])
+                if headers.has_key('Description'):
+                    tmpl['description'] = headers['Description']
+                elif headers.has_key('Title'):
+                    tmpl['description'] = headers['Title']
+                else:
+                    tmpl['description'] = z['site_name']
                 target_path = os.path.join(d_htdocs, traverse_root[len(d_source)+1:], os.path.splitext(traverse_file)[0]) + '.html'
                 tmpl['canonical_url'] = '/'.join([z['site_base_url'], (os.path.splitext(source_subpath)[0] + '.html')])
                 target_content = Template(file(os.path.join(z['opt_path_templates'], 'tmpl_header.html')).read()).substitute(tmpl)
