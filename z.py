@@ -96,6 +96,9 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             output_buffer += '        %s\n\n' % (state_path)
 
     for traverse_file in traverse_files:
+        # Skip files that end in '.draft':
+        if traverse_file.endswith('.draft'):
+            continue
         d_section = traverse_root[len(d_source)+1:].split('/')[0]
         # Skip some files in `d_source`:
         if traverse_root == d_source and traverse_file in f_source_skip:
