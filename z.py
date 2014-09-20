@@ -270,6 +270,7 @@ if repaginate:
             target_d = os.path.join(d_htdocs, 'page')
             target_f = os.path.join(target_d, '%d.html' % (page))
             d['page_title'] = '%s - Page %d' % (z['site_name'], page)
+        d['description'] = d['page_title']
         commit_f = target_f[len(target_d)+1:]
         target_f = open(target_f, 'w')
 
