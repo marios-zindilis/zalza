@@ -44,8 +44,8 @@ changes = []
 subprocess.Popen('clear', shell=True).communicate()
 
 build = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-output_buffer = 'zBuild ' + build + '\n'
-output_buffer += '=' * len(output_buffer) + '\n\n'
+output = 'zBuild ' + build + '\n'
+output += '=' * len(output) + '\n\n'
 
 def get_headers(source_path):
     headers = {}
@@ -80,20 +80,20 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
 
         if not os.path.isdir(target_path) or not os.path.isdir(state_path):
             action_index += 1
-            output_buffer += ('%s.' % (str(action_index))).ljust(4)
-            output_buffer += 'Found a **source directory**:\n\n' 
-            output_buffer += '        %s\n\n' % (source_path)
+            output += ('%s.' % (str(action_index))).ljust(4)
+            output += 'Found a **source directory**:\n\n' 
+            output += '        %s\n\n' % (source_path)
 
         if not os.path.isdir(target_path):
             os.makedirs(target_path)
-            output_buffer += '    Created its **target directory**:\n\n'
-            output_buffer += '        %s\n\n' % (target_path)
+            output += '    Created its **target directory**:\n\n'
+            output += '        %s\n\n' % (target_path)
             os.chdir(d_source)
 
         if not os.path.isdir(state_path):
             os.makedirs(state_path)
-            output_buffer += '    Created its **state directory**:\n\n'
-            output_buffer += '        %s\n\n' % (state_path)
+            output += '    Created its **state directory**:\n\n'
+            output += '        %s\n\n' % (state_path)
 
     for traverse_file in traverse_files:
         # Skip files that end in '.draft':
@@ -128,32 +128,32 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
         or (os.path.isfile(state_path) and \
         file(state_path).read() != source_hash):
             action_index += 1
-            output_buffer += ('%s.' % (str(action_index))).ljust(4)
-            output_buffer += 'Found a **source file**:\n\n'
-            output_buffer += '        %s\n\n' % (source_path)
+            output += ('%s.' % (str(action_index))).ljust(4)
+            output += 'Found a **source file**:\n\n'
+            output += '        %s\n\n' % (source_path)
 
             # If the source is not a Markdown file, then just copy it verbatim 
             # to the target directory and [re-]create the state:
             if not source_path.endswith('.md'):
                 target_path = os.path.join(d_htdocs, source_subpath)
                 shutil.copyfile(source_path, target_path)
-                output_buffer += '    Copied verbatim at:\n\n'
-                output_buffer += '        %s\n\n' % (target_path)
+                output += '    Copied verbatim at:\n\n'
+                output += '        %s\n\n' % (target_path)
 
                 state_file = open(state_path, 'w')
                 state_file.write(source_hash)
                 state_file.close()
-                output_buffer += '    Created state at:\n\n'
-                output_buffer += '        %s\n\n' % (state_path)
+                output += '    Created state at:\n\n'
+                output += '        %s\n\n' % (state_path)
             # Otherwise, if the source _is_ Markdown, then [re-]create both the
             # HTML output and the state:
             else:
                 # Get headers from source file:
                 headers = get_headers(source_path)
-                output_buffer += '    Headers in this file:\n\n'
+                output += '    Headers in this file:\n\n'
                 for header in headers.keys():
-                    output_buffer += '        *   %s: %s\n' % (header, headers[header])
-                output_buffer += '\n'
+                    output += '        *   %s: %s\n' % (header, headers[header])
+                output += '\n'
 
                 tmpl = {}
                 tmpl['site_name'] = z['site_name']
@@ -207,14 +207,14 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
                 target_file.write(target_content.encode('utf-8'))
                 target_file.close()
 
-                output_buffer += '    Created HTML file at:\n\n'
-                output_buffer += '        %s\n\n' % (target_path)
+                output += '    Created HTML file at:\n\n'
+                output += '        %s\n\n' % (target_path)
 
                 state_file = open(state_path, 'w')
                 state_file.write(source_hash)
                 state_file.close()
-                output_buffer += '    Create state at:\n\n'
-                output_buffer += '        %s\n\n' % (state_path)
+                output += '    Create state at:\n\n'
+                output += '        %s\n\n' % (state_path)
 
             os.chdir(d_source)
             commit_path = source_subpath
@@ -225,7 +225,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             p.communicate()
             p = subprocess.Popen(['git', 'push', '--quiet'])
             p.communicate()
-            output_buffer += '    Committed source to Git and pushed.\n\n'
+            output += '    Committed source to Git and pushed.\n\n'
 
             # Commit the target file:
             os.chdir(d_htdocs)
@@ -237,7 +237,7 @@ for traverse_root, traverse_dirs, traverse_files in os.walk(d_source):
             p.communicate()
             p = subprocess.Popen(['git', 'push', '--quiet'])
             p.communicate()
-            output_buffer += '    Committed target to Git and pushed.\n\n'
+            output += '    Committed target to Git and pushed.\n\n'
 
 if repaginate:
     posts = {}
@@ -344,14 +344,14 @@ if repaginate:
 
 
 if len(changes):
-    output_buffer += 'Changes during this Build\n'
-    output_buffer += '-------------------------\n\n'
+    output += 'Changes during this Build\n'
+    output += '-------------------------\n\n'
     for change in changes:
-        output_buffer += '*   %s\n' % (change)
+        output += '*   %s\n' % (change)
 
     output_path = os.path.join(z['opt_path_build'], '%s.md' % (build))
     output_file = open(output_path, 'w')
-    output_file.write(output_buffer)
+    output_file.write(output)
     output_file.close()
-    output_buffer += '\nThis log has been saved as: %s' % (output_path)
-    print output_buffer
+    output += '\nThis log has been saved as: %s' % (output_path)
+    print output
