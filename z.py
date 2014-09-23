@@ -300,7 +300,7 @@ if repaginate:
                 if skip_lines:
                     continue
                 target_content += '%s\n' % (line.encode('utf-8'))
-            target_content += '<footer>Posted on %s</footer>' % (headers['First Published'])
+            target_content += '<footer><span class="glyphicon glyphicon-time"></span> Posted on %s</footer>' % (headers['First Published'])
             target_content += '</article>'
 
         target_content += '<ul class="pagination">'
