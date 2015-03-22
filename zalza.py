@@ -6,13 +6,12 @@ pages for my website.
 import git
 import hashlib
 import os
+import shutil
 
 REMOTE = 'https://github.com/marios-zindilis/zindilis.com.git'
-# LOCAL = '/home/marios/Tests/zindilis.com'
 LOCAL = '/var/zalza/zindilis.com'
 SKIP_D = ['.git']
 SKIP_F = ['.gitignore', 'README.md']
-# STATE = '/home/marios/Tests/state'
 STATE = '/var/zalza/state'
 WEB = '/var/www/html'
 DEBUG = True
@@ -93,6 +92,17 @@ def create_content():
 
             print 'Found source file: %s' % (source_path_abs,)
 
+            # If source is not Markdown, copy verbatim and recreate the state:
+            if not current_file.endswith('.md'):
+                target_path = os.path.join(WEB, source_path_rel)
+                shutil.copyfile(source_path_abs, target_path)
+                print 'Copied verbatim at: %s' % (target_path,)
+
+                state_file = open(state_path, 'w')
+                state_file.write(source_hash)
+                state_file.close()
+                print 'Created state at: %s' % (state_path,)
+            
 
 if __name__ == "__main__":
     if git_is_installed():
