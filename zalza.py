@@ -14,6 +14,7 @@ import shutil
 from string import Template
 
 LOCAL = '/var/zalza/zindilis.com'
+BLOG = os.path.join(LOCAL, 'blog')
 SKIP_D = ['.git']
 SKIP_F = ['.gitignore', 'README.md']
 STATE = '/var/zalza/state'
@@ -56,7 +57,6 @@ verbatim. In both cases, creates the state (MD5 hash of the file).
 
 for root, dirs, files in os.walk(LOCAL):
     for current_dir in dirs:
-        # The `section` is the first level subdirectory of LOCAL:
         section = root[len(LOCAL)+1:].split('/')[0]
         if (root == LOCAL and current_dir in SKIP_D) or section in SKIP_D:
             continue
@@ -193,8 +193,7 @@ if repaginate:
     pages = {}
     post = 0
     page = 0
-    d_blog = os.path.join(LOCAL, 'blog')
-    for traverse_root, traverse_dirs, traverse_files in os.walk(d_blog):
+    for traverse_root, traverse_dirs, traverse_files in os.walk(BLOG):
         for traverse_file in traverse_files:
             if traverse_file.endswith('.md'):
                 source_path = os.path.join(traverse_root, traverse_file)
