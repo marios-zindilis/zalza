@@ -32,20 +32,20 @@ ITEMSCOPE_ARTICLE = ' itemscope itemtype="http://schema.org/Article"'
 repaginate = False
 
 
-def get_headers(source_path_abs):
+def get_headers(absolute_source_path):
     '''
     Reads a source file, and returns key/value pairs as a dictionary.
     '''
-    headers = {}
-    for line in file(source_path_abs).readlines():
+    source_headers = {}
+    for line in file(absolute_source_path).readlines():
         if ':' in line:
             key, value = line.split(':', 1)
             key = key.lstrip().rstrip()
             value = value.lstrip().rstrip()
-            headers[key] = value
+            source_headers[key] = value
         if line == '- -->\n':
             break
-    return headers
+    return source_headers
 
 
 '''
