@@ -220,6 +220,8 @@ if repaginate:
         else:
             d['canonical'] = '%spage/%d.html' % (SITE_URL, page)
             target_d = os.path.join(WEB, 'page')
+            if not os.path.isdir(target_d):
+                os.makedirs(target_d)
             target_f = os.path.join(target_d, '%d.html' % (page))
             d['page_title'] = '%s - Page %d' % (SITE_NAME, page)
         d['description'] = d['page_title']
