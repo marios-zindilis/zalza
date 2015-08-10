@@ -182,6 +182,7 @@ for root, dirs, files in os.walk(LOCAL):
         web_file = open(web_path, 'w')
         web_file.write(content.encode('utf-8'))
         web_file.close()
+        print 'URL: %s' % (tmpl['canonical'],)
 
         state_file = open(state_path, 'w')
         state_file.write(source_hash)
