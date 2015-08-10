@@ -110,7 +110,7 @@ for root, dirs, files in os.walk(LOCAL):
             continue
 
         headers = get_headers(source_path_abs)
-        # Keys of the tmpl dictionary are used in string.Template later:
+        # Keys of the tmpl dictionary are used in `string.Template` later:
         tmpl = {}
         tmpl['site_name'] = SITE_NAME
         tmpl['page_title'] = SITE_NAME
