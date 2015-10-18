@@ -37,14 +37,16 @@ def get_headers(absolute_source_path):
     Reads a source file, and returns key/value pairs as a dictionary.
     '''
     source_headers = {}
-    for line in file(absolute_source_path).readlines():
-        if ':' in line:
-            key, value = line.split(':', 1)
-            key = key.lstrip().rstrip()
-            value = value.lstrip().rstrip()
-            source_headers[key] = value
-        if line == '- -->\n':
-            break
+    lines = file(absolute_source_path).readlines()
+    if lines[0].startswith('<!--'):
+        for line in lines:
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.lstrip().rstrip()
+                value = value.lstrip().rstrip()
+                source_headers[key] = value
+            if line.endswith('-->\n'):
+                break
     return source_headers
 
 
