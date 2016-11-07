@@ -7,23 +7,58 @@ web server, and Git only executes the hook if there are updates.
 '''
 
 import hashlib
-import htmlmin
 from markdown2 import markdown
+import htmlmin
 import os
 import shutil
 from string import Template
+import argparse
+import sys
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('-D', '--dry-run', action='store_true', dest='dry_run', help='run and report without making any changes')
+argument_parser.add_argument('-d', '--debug', action='store_true', dest='debug', help='run in debug mode')
+argument_parser.add_argument('--source', metavar='LOCAL', dest='source', help='define source directory')
+argument_parser.add_argument('--destination', metavar='WEB', dest='destination', help='define web directory')
+argument_parser.add_argument('--state', metavar='STATE', dest='state', help='define state directory')
+argument_parser.add_argument('--no-minify', action='store_true', dest='no_minify', help='do not minify html')
+args = argument_parser.parse_args()
 
 LOCAL = '/var/zalza/zindilis.com'
+if args.source:
+    LOCAL = args.source
+if LOCAL.endswith('/'):
+    LOCAL = LOCAL[:-1]
+
+STATE = '/var/zalza/state'
+if args.state:
+    STATE = args.state
+if STATE.endswith('/'):
+    STATE = STATE[:-1]
+
+WEB = '/var/www/html'
+if args.destination:
+    WEB = args.destination
+if WEB.endswith('/'):
+    WEB = WEB[:-1]
+
+for d in (LOCAL, WEB, STATE):
+    if not os.path.isdir(d):
+        if args.debug:
+            print('Path not found: %s' % (d,))
+        sys.exit()
+
 BLOG = os.path.join(LOCAL, 'blog')
 SKIP_D = ['.git']
 SKIP_F = ['.gitignore', 'README.md']
-STATE = '/var/zalza/state'
-WEB = '/var/www/html'
+
 SITE_NAME = 'Marios Zindilis'
 SITE_URL = 'https://zindilis.com/'
 SITE_AUTHOR = 'Marios Zindilis'
 HEADER = '/home/marios/Public/Dropbox/Code/zalza/tmpl-header.html'
 FOOTER = '/home/marios/Public/Dropbox/Code/zalza/tmpl-footer.html'
+HEADER = '/opt/zalza/tmpl-header.html'
+FOOTER = '/opt/zalza/tmpl-footer.html'
 DEBUG = True
 # schema.org stuff:
 ITEMSCOPE_BLOG = ' itemscope itemtype="http://schema.org/BlogPosting"'
@@ -42,8 +77,8 @@ def get_headers(absolute_source_path):
         for line in lines:
             if ':' in line:
                 key, value = line.split(':', 1)
-                key = key.lstrip().rstrip()
-                value = value.lstrip().rstrip()
+                key = key.strip()
+                value = value.strip()
                 source_headers[key] = value
             if line.endswith('-->\n'):
                 break
@@ -70,45 +105,62 @@ for root, dirs, files in os.walk(LOCAL):
         state_path = os.path.join(STATE, source_path_rel)
         if not os.path.isdir(web_path):
             os.makedirs(web_path)
-            print 'Created web directory: %s' % (web_path,)
+            print('Created web directory: %s' % (web_path,))
         if not os.path.isdir(state_path):
             os.makedirs(state_path)
-            print 'Created state directory: %s' % (state_path,)
+            print('Created state directory: %s' % (state_path,))
 
     for current_file in files:
         # The `section` is the first level subdirectory of LOCAL:
         section = root[len(LOCAL)+1:].split('/')[0]
 
-        # Skip drafts, skip files in SKIP_F, skip directories in SKIP_D:
-        if (current_file.endswith('.draft') or
-           (root == LOCAL and current_file in SKIP_F) or
-           (root != LOCAL and section in SKIP_D)):
-            continue
-
         # Absolute and relative paths of source file:
         source_path_abs = os.path.join(root, current_file)
         source_path_rel = source_path_abs[len(LOCAL)+1:]
+
+        if args.debug:
+            print('---')
+            print('SRC: %s' % (source_path_abs,))
+
+        # Skip drafts, skip files in SKIP_F, skip directories in SKIP_D:
+        if current_file.endswith('.draft'):
+            if args.debug:
+                print(' +-DBG: Skipped draft: %s' % (source_path_abs,))
+            continue
+
+        # Skip some files in the root local repository, such as `.gitignore`:
+        if root == LOCAL and current_file in SKIP_F:
+            if args.debug:
+                print(' +-DBG: Skipped file: %s' % (source_path_abs,))
+            continue
+
+        # Skip some subdirectories that are first children of the local
+        # directory of source documents, such as `.git`:
+        if root != LOCAL and section in SKIP_D:
+            if args.debug:
+                print(' +-DBG: Skipped %s content: %s' % (section, source_path_abs))
+            continue
 
         source_content = file(source_path_abs).read()
         source_hash = hashlib.md5(source_content).hexdigest()
         state_path = os.path.join(STATE, source_path_rel) + '.state'
 
         if (os.path.isfile(state_path) and
-           file(state_path).read() == source_hash):
+                file(state_path).read() == source_hash):
             continue
 
-        print 'Source: %s (in %s)' % (source_path_abs, section)
+        print('Source: %s (in %s)' % (source_path_abs, section))
 
         # If source is not Markdown, copy verbatim and recreate the state:
         if not current_file.endswith('.md'):
             web_path = os.path.join(WEB, source_path_rel)
             shutil.copyfile(source_path_abs, web_path)
-            print 'Copied verbatim at: %s' % (web_path,)
+            print('Copied verbatim at: %s' % (web_path,))
 
             state_file = open(state_path, 'w')
             state_file.write(source_hash)
             state_file.close()
-            print 'Created state at: %s' % (state_path,)
+            print('Created state at: %s' % (state_path,))
             continue
 
         headers = get_headers(source_path_abs)
@@ -126,6 +178,7 @@ for root, dirs, files in os.walk(LOCAL):
             tmpl['description'] = SITE_NAME
         tmpl['canonical'] = '%s%s' % (SITE_URL, source_path_rel)
         tmpl['canonical'] = os.path.splitext(tmpl['canonical'])[0] + '.html'
+        tmpl['page_id'] = tmpl['canonical'][len(SITE_URL)-1:]
         tmpl['info'] = ''
         if 'Title' in headers:
             tmpl['info'] += '''
@@ -173,18 +226,19 @@ for root, dirs, files in os.walk(LOCAL):
             content += '<article%s>' % (ITEMSCOPE_BLOG)
             if not current_file.endswith('index.md'):
                 repaginate = True
-                print 'set repaginate to %s' % (repaginate,)
+                print('set repaginate to %s' % (repaginate,))
         else:
             content += '<article>'
 
         content += markdown(source_content, extras=['fenced-code-blocks'])
         content += page_footer
-        content = htmlmin.minify(content, remove_comments=True)
+        if not args.no_minify:
+            content = htmlmin.minify(content, remove_comments=True)
 
         web_file = open(web_path, 'w')
         web_file.write(content.encode('utf-8'))
         web_file.close()
-        print 'URL: %s' % (tmpl['canonical'],)
+        print('URL: %s' % (tmpl['canonical'],))
 
         state_file = open(state_path, 'w')
         state_file.write(source_hash)
