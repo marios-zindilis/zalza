@@ -1,17 +1,21 @@
 Zalza
 =====
 
-**Zalza** is the Python script with which I maintain my website, 
-[zindilis.com](http://zindilis.com/). It traverses a directory with the sources 
-of the website (mostly written in Markdown), and produces HTML files. 
+**Zalza** was the Python script which I used to maintain my website, 
+[zindilis.com][1]. before I switched to [Jekyll][2]. It traverses a directory
+with the sources of the website (mostly written in Markdown), and produces HTML
+files.
 
-This script is triggered by a `post-merge` Git hook, inside the local 
+  [1]: https://zindilis.com/
+  [2]: https://jekyllrb.com/
+
+This script was triggered by a `post-merge` Git hook, inside the local 
 repository of the Markdown sources, on the web server. A `git pull` runs 
 periodically on the web server, as a cronjob:
 
     */10 * * * * cd /var/zalza/zindilis.com && git pull --quiet
 
-and Git only executes the hook if there are updates. Here's the hook:
+...and Git only executes the hook if there are updates. Here's the hook:
 
     [marios@huey ~]$ cat /var/zalza/zindilis.com/.git/hooks/post-merge 
     #!/bin/bash 
